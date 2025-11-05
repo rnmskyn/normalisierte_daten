@@ -2,12 +2,12 @@
 
 print_import_commands() {
 cat << END
-LOAD DATA INFILE "'$1'"
-INTO TABLE your_table_name
-FIELDS TERMINATED BY ','
+LOAD DATA INFILE '$2'
+INTO TABLE $1
+FIELDS TERMINATED BY ';'
 ENCLOSED BY '"'
-LINES TERMINATED BY '\n'
-IGNORE 1 ROWS;
+LINES TERMINATED BY '\n';
+
 END
 }
 
@@ -23,20 +23,24 @@ CREATE TABLE kunden (
     stadt VARCHAR(255),
     land VARCHAR(255)
 );
+
 END
-    print_import_commands kunden.CSV
+    print_import_commands kunden kunden.CSV
 }
 
 create_hersteller_db(){
+cat << END	
 CREATE TABLE hersteller (
     name VARCHAR(255) PRIMARY KEY,
     land VARCHAR(255)
 );
+
 END
-    print_import_commands hersteller.CSV
+    print_import_commands hersteller hersteller.CSV
 }
 
 create_produkte_db() {
+cat << END
 CREATE TABLE produkte (
     produktnummer VARCHAR(255) PRIMARY KEY,
     bezeichnung VARCHAR(255),
@@ -44,10 +48,12 @@ CREATE TABLE produkte (
     FOREIGN KEY (hersteller) REFERENCES hersteller(name)
 );
 END
-    print_import_commands produkte.CSV
+    print_import_commands produkte produkte.CSV
 }
 
 create_warenkorb_db() {
+cat << END
+
 CREATE TABLE warenkorb (
     bestellnummer INT,
     produktnummer VARCHAR(255),
@@ -57,13 +63,15 @@ CREATE TABLE warenkorb (
     FOREIGN KEY (produktnummer) REFERENCES produkte(produktnummer)
 );
 END
-    print_import_commands warenkorb.CSV
+    print_import_commands warenkorb warenkorb.CSV
 }
 
 create_bestellung_db(){
+cat << END
+
 CREATE TABLE bestellung (
     bestellnummer INT PRIMARY KEY,
-    datum DATE,
+    datum DATE VALUES (STR_TO_DATE('15.01.2025', '%d.%m.%Y')),
     kundennummer VARCHAR(255),
     versandkosten DECIMAL(10,2),
     gesamtkosten DECIMAL(10,2),
@@ -71,7 +79,7 @@ CREATE TABLE bestellung (
     FOREIGN KEY (kundennummer) REFERENCES kunden(kundennummer)
 );
 END
-    print_import_commands bestellung.CSV
+    print_import_commands bestellung bestellung.CSV
 }
 
 
@@ -83,11 +91,13 @@ END
 
 drop_dbs() {
 cat << END
-DROP TABLE bestellung;
-DROP TABLE warenkorb;
-DROP TABLE produkte;
-DROP TABLE hersteller;
-DROP TABLE kunden;
+SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS bestellung;
+DROP TABLE IF EXISTS produkte;
+DROP TABLE IF EXISTS warenkorb;
+DROP TABLE IF EXISTS hersteller;
+DROP TABLE IF EXISTS kunden;
+SET FOREIGN_KEY_CHECKS = 1;
 END
 }
 
@@ -98,7 +108,6 @@ create_hersteller_db
 create_produkte_db
 create_warenkorb_db
 create_bestellung_db
-save_db
 show_db
 
 
